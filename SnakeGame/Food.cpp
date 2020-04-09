@@ -3,16 +3,15 @@
 #include <iostream>
 
 Food::Food() {
-	m_type = eFoodType::e_standard;
-	Randomise();
-	m_circle = sf::CircleShape(static_cast<float>(Constants::k_snakeBlockSize) / 2);
-}
+	m_type = EFoodType::eStandard;
 
-Food::~Food() = default;
+	m_standardTexture.loadFromFile("Resources/Graphics/Food_Standard.png");
+	m_specialTexture.loadFromFile("Resources/Graphics/Food_Special.png");
+	m_gobbleTexture.loadFromFile("Resources/Graphics/Food_Gobble.png");
 
-Food::Food(sf::Color _colour, sf::Vector2f _position) : Entity(_colour, _position), m_type(eFoodType::e_standard) {
+	m_sprite.setOrigin(m_sprite.getGlobalBounds().width / 2, m_sprite.getGlobalBounds().height / 2);
+
 	Randomise();
-	m_circle = sf::CircleShape(static_cast<float>(Constants::k_snakeBlockSize) / 2);
 }
 
 void Food::Randomise() {
@@ -20,56 +19,34 @@ void Food::Randomise() {
 	const int randomType{ RandomRange(0, 100) };
 	//60% chance of being standard
 	if (randomType <= 60) {
-		m_type = eFoodType::e_standard;
+		m_type = EFoodType::eStandard;
 	}
 	//30% chance of being Special
 	else if (randomType <= 90) {
-		m_type = eFoodType::e_special;
+		m_type = EFoodType::eSpecial;
 	}
 	//10% chance of being Gobble Mode
 	else {
-		m_type = eFoodType::e_gobble;
+		m_type = EFoodType::eGobble;
 	}
 	RandomisePosition();
 }
 
-void Food::RandomisePosition() {
-	//Find a random grid position
-	//generate column number
-
-	m_colour = sf::Color(RandomRange(0, 255), RandomRange(0, 255), RandomRange(0, 255));
-
-	int randomNumber{ RandomRange(4, static_cast<int>(Constants::k_screenWidth - 400) / Constants::k_snakeBlockSize) };
-
-	m_position.x = randomNumber * Constants::k_gridSize >= Constants::k_screenWidth - 200
-						? static_cast<float>(Constants::k_screenWidth - 200)
-						: static_cast<float>(randomNumber * Constants::k_gridSize);
-
-	randomNumber = RandomRange(4, static_cast<int>(Constants::k_screenHeight - 100) / Constants::k_snakeBlockSize);
-	
-	m_position.y = randomNumber * Constants::k_gridSize >= Constants::k_screenHeight - 100
-						? static_cast<float>(Constants::k_screenHeight - 100)
-						: static_cast<float>(randomNumber * Constants::k_gridSize);
-
-	m_circle.setPosition(m_position);
-}
-
 void Food::Render(sf::RenderWindow& _window) {
-	switch (m_type)
-	{
-	case eFoodType::e_standard:
-		m_colour = sf::Color::Green;
+	switch (m_type) {
+	case EFoodType::eStandard:
+		m_sprite.setTexture(m_standardTexture);
 		break;
-	case eFoodType::e_special:
-		m_colour = sf::Color::Magenta;
+	case EFoodType::eSpecial:
+		m_sprite.setTexture(m_specialTexture);
 		break;
-	case eFoodType::e_gobble:
-		m_colour = sf::Color::Yellow;
+	case EFoodType::eGobble:
+		m_sprite.setTexture(m_gobbleTexture);
 		break;
 	default:
 		break;
 	}
-	m_circle.setPosition(m_position);
-	m_circle.setFillColor(m_colour);
-	_window.draw(m_circle);
+	m_sprite.setOrigin(m_sprite.getGlobalBounds().width / 2, m_sprite.getGlobalBounds().height / 2);
+	m_sprite.setPosition(m_position);
+	_window.draw(m_sprite);
 }

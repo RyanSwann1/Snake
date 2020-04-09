@@ -3,42 +3,29 @@
 #include "Entity.h"
 #include "Food.h"
 #include "List.h"
-
-
-//Holds the directions that the snake can travel in
-enum class EDirection {
-	e_none, e_left, e_right, e_up, e_down
-};
+#include "SoundManager.h"
 
 //To deal with collisions in the game
 enum class ECollisionType {
-	e_wall, e_snake, e_self, e_food
-};
-
-//Each part of the snake is a position vector called a Segment
-struct Segment {
-	Segment(const int _x, const int _y) : x(_x), y(_y) {
-		sf::Vector2i(_x, _y);
-	}
-	int x;
-	int y;
+	eWall, eSnake, eSelf, eFood
 };
 
 class Snake : public Entity {
 public:
 	Snake();
 
+	virtual void Update();
+	void Render(sf::RenderWindow& _window) override final;
+	
 	void Grow(const int _amount);
-
 	void Shrink(const int _amount);
 
-	virtual void Update();
-
-	virtual void CheckCollision();
-
+	void CheckCollisions();
+	void CheckCollisionsAgainstSelf();
+	void CheckCollisionsAgainstFood();
+	void CheckCollisionsAgainstOtherSnakes();
 	//for colliding with other snakes, itself and walls
 	void Collision(ECollisionType _collisionType);
-
 	//For colliding with pickups
 	void Collision(Food* _food);
 
@@ -47,24 +34,25 @@ public:
 	int FindGobblePoint(sf::Vector2f _gobbleSnakeHead) const;
 
 	bool GetIsGobbleMode() const { return m_gobbleMode; }
+	void SetIsGobbleMode(const bool& _isGobbleMode) { m_gobbleMode = _isGobbleMode; }
+
+	void SetSoundManager(SoundManager* _soundManager) { m_soundManager = _soundManager; }
 
 	int GetScore() const { return m_score; }
 
-	void SetIsGobbleMode(const bool& _isGobbleMode) { m_gobbleMode = _isGobbleMode; }
+	void SetFood(Food* _food) { m_food.push_back(_food); }
 
-	void SetFood(Food* food) { m_food.push_back(food); }
+	void SetOtherSnake(Snake* _snake) { m_otherSnakes.push_back(_snake); }
 
 	bool IsDead() const { return m_dead; }
 
-	void Render(sf::RenderWindow& _window) override final;
+	EDirection GetDirection() const { return m_direction; }
 
 	List GetSnakeSegments() const { return m_segments; }
 protected:
+	void Move() override;
 
-	sf::Color m_gobbleColour{ sf::Color::Yellow };
-	sf::Color m_defaultColour{ sf::Color::Red };
-	
-	EDirection m_direction{ EDirection::e_right };
+	EDirection m_direction{ EDirection::eRight };
 
 	sf::RectangleShape m_rectangle;
 
@@ -73,12 +61,28 @@ protected:
 	bool m_gobbleMode{ false };
 
 	bool m_dead{ false };
-
-	void Move() override;
-
-	int m_score{ 0 };
 	
+	int m_score{ 0 };
+
+	//A store of all of the other snakes on screen for collision detection and decision making
+	std::vector<Snake*> m_otherSnakes;
+
 	//A store of all of the food on screen to help with decision making
 	std::vector<Food*> m_food;
 
+	//The textures...
+	sf::Texture m_headTexture;
+	sf::Texture m_scaredTexture;
+	sf::Texture m_bendTexture;
+	sf::Texture m_bodyTexture;
+	sf::Texture m_tailTexture;
+	
+	//For Gobble Mode
+	sf::Texture m_gobbleHeadTexture;
+	sf::Texture m_gobbleBendTexture;
+	sf::Texture m_gobbleBodyTexture;
+	sf::Texture m_gobbleTailTexture;
+
+	//For SFX
+	SoundManager* m_soundManager;
 };
